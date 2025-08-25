@@ -80,9 +80,6 @@ npx playwright test tests/extension.spec.ts
 └── README.md             # This file
 ```
 
-## Contributing
-
-Contributions are welcome! Please feel free to submit issues, feature requests, or pull requests.
 
 ## License
 
