@@ -1,0 +1,53 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>Enhanced Search Options</title>
+<style>
+  body { font-family: Arial, Helvetica, sans-serif; padding:16px }
+  label { display:block; margin:8px 0 }
+  .row { display:flex; gap:12px; align-items:center }
+</style>
+<h2>Enhanced Search — Options</h2>
+<div class="row">
+  <label><input type="checkbox" id="opt-case"> Case-sensitive</label>
+  <label><input type="checkbox" id="opt-whole"> Whole word</label>
+  <label><input type="checkbox" id="opt-regex"> Treat as regex</label>
+</div>
+<div class="row">
+  <label><input type="checkbox" id="opt-html"> Include HTML-like matches</label>
+  <label><input type="checkbox" id="opt-worker"> Enable experimental worker offload (opt-in)</label>
+</div>
+<div class="row">
+  <small>Element filters (checked = included):</small>
+  <label><input type="checkbox" id="opt-filter-headings"> Headings</label>
+  <label><input type="checkbox" id="opt-filter-links"> Links</label>
+  <label><input type="checkbox" id="opt-filter-paragraphs"> Paragraphs</label>
+</div>
+<div class="row">
+  <label>Theme: <select id="opt-theme"><option value="dark">Dark</option><option value="light">Light</option></select></label>
+</div>
+<button id="save">Save</button>
+<script>
+  const save = document.getElementById('save');
+  const ids = ['case','whole','regex','html','worker','theme'];
+  function load() {
+    chrome.storage.local.get(ids, (res) => {
+      ids.forEach(id => {
+        const el = document.getElementById('opt-'+id) || document.getElementById('opt-theme');
+        if (!el) return;
+        if (id === 'theme') el.value = res.theme || 'dark';
+        else el.checked = !!res[id];
+      });
+    });
+  }
+  save.addEventListener('click', () => {
+    const out = {};
+    ids.forEach(id => {
+      if (id === 'theme') out.theme = document.getElementById('opt-theme').value;
+      else out[id] = !!document.getElementById('opt-'+id).checked;
+    });
+    chrome.storage.local.set(out, () => { alert('Saved'); });
+  });
+  load();
+</script>
+
+

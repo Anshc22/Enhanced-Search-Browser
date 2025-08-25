@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Enhanced Search — Privacy Policy</title>
+  <style>
+    body { font-family: Arial, Helvetica, sans-serif; line-height:1.5; color:#111; padding:28px; max-width:860px; margin:auto }
+    h1{ font-size:20px; margin-bottom:8px }
+    h2{ font-size:16px; margin-top:18px }
+    p, li{ font-size:14px }
+    pre{ background:#f6f6f8; padding:12px; border-radius:6px; overflow:auto }
+  </style>
+</head>
+<body>
+  <h1>Enhanced Search — Privacy Policy</h1>
+  <p>Last updated: <!-- put date here --> </p>
+
+  <h2>1. Data collection</h2>
+  <p>The extension performs all search, highlighting, and UI operations locally in the browser. No page content, keystrokes, or search queries are transmitted off-device unless you explicitly use an export feature to save a file locally.</p>
+
+  <h2>2. Remote code and optional downloads</h2>
+  <p>Optional remote assets (for example, language packs or an optional Web Worker bundle) are downloaded only after explicit user opt-in. Remote resources are fetched over HTTPS, verified with Subresource Integrity (SRI) where possible, and executed without dynamic eval. Users can disable remote resources in settings; the extension falls back to a fully local implementation.</p>
+
+  <h2>3. Permissions and usage</h2>
+  <ul>
+    <li><strong>storage</strong>: used to persist user preferences, overlay position, and local search history.</li>
+    <li><strong>activeTab</strong> / <strong>scripting</strong>: used only to inject the overlay and perform in-page operations when the user activates the extension.</li>
+    <li><strong>contextMenus</strong>: used only to add an optional right-click entry to open the search overlay.</li>
+    <li><strong>Host access</strong>: minimal and only used when the user enables the extension for a site; no page content is uploaded.</li>
+  </ul>
+
+  <h2>4. Retention & deletion</h2>
+  <p>All persisted data is stored in the browser (Chrome <code>storage.local</code>) and can be cleared from the extension’s options page or via the browser’s extension settings.</p>
+
+  <h2>5. Security & contact</h2>
+  <p>No user data is shared with third parties. For security concerns or questions, contact: <a href="mailto:privacy@yourdomain.example">privacy@yourdomain.example</a> (replace with your contact address).</p>
+
+</body>
+</html>

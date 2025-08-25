@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "Enhanced Search",
+  "version": "0.1.0",
+  "description": "Replace and enhance the browser find (Ctrl+F) with advanced search features.",
+  "permissions": ["storage", "activeTab", "scripting", "contextMenus"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "commands": {
+    "open-enhanced-search": {
+      "suggested_key": {
+        "default": "Ctrl+F",
+        "mac": "Command+F"
+      },
+      "description": "Open Enhanced Search overlay"
+    }
+  },
+  "action": {
+    "default_title": "Enhanced Search"
+  },
+  "icons": {
+    "16": "16x16.png",
+    "48": "48x48.png",
+    "128": "128X128.png"
+  },
+  "options_ui": {
+    "page": "src/options.html",
+    "open_in_tab": true
+  },
+  
+  "web_accessible_resources": [
+    {
+      "resources": ["src/overlay.css"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
+
+
