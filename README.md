@@ -2,6 +2,11 @@
 
 A powerful Chrome extension that replaces the browser's default find (Ctrl+F) with an advanced search overlay featuring live search, regex support, multi-term queries, and smart filtering.
 
+<img width="356" height="385" alt="Sample" src="https://github.com/user-attachments/assets/aec4266a-4ebe-4310-b17d-82b877e05fbe" />
+
+<img width="957" height="439" alt="Both Perpspectives" src="https://github.com/user-attachments/assets/572ade8a-1fc6-44eb-b3f6-29dd19dd7eda" />
+
+
 ## Features
 
 - **Live Search**: Results appear as you type with debounced input
