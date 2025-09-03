@@ -455,13 +455,27 @@
   // also listen for the command
   chrome.runtime.onMessage.addListener((req, sender, respond) => {
     try {
-      if (req.action === 'open-enhanced-search') {
+      if (req.action === 'ping') {
+        // Respond to ping to indicate content script is ready
+        respond({ ready: true });
+      } else if (req.action === 'open-enhanced-search') {
         showOverlay();
+        respond({ success: true });
+      } else if (req.action === 'search-selection') {
+        // Handle search selection logic here
+        showOverlay();
+        // Set the search input to the selected text
+        const input = document.getElementById('es-input');
+        if (input && req.text) {
+          input.value = req.text;
+          performSearch(req.text);
+        }
         respond({ success: true });
       }
     } catch (e) {
       // Extension context invalidated; ignore
     }
+    return true; // Keep the message channel open for async responses
   });
 
   // Current matches from search

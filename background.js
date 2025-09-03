@@ -2,10 +2,20 @@ chrome.commands.onCommand.addListener(async (command) => {
   if (command === 'open-enhanced-search') {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (tab && tab.id) {
-      chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        files: ['src/content.js']
-      });
+      // Check if content script is already loaded by sending a message first
+      try {
+        const response = await chrome.tabs.sendMessage(tab.id, { action: 'ping' });
+        if (response && response.ready) {
+          // Content script is already loaded, just send the open command
+          chrome.tabs.sendMessage(tab.id, { action: 'open-enhanced-search' });
+        }
+      } catch (e) {
+        // Content script not loaded, inject it
+        chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          files: ['src/content.js']
+        });
+      }
     }
   }
 });
@@ -19,18 +29,47 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
+// Helper function to safely inject content script if not already loaded
+async function ensureContentScriptLoaded(tabId) {
+  try {
+    const response = await chrome.tabs.sendMessage(tabId, { action: 'ping' });
+    return response && response.ready;
+  } catch (e) {
+    // Content script not loaded, inject it
+    await chrome.scripting.executeScript({
+      target: { tabId: tabId },
+      files: ['src/content.js']
+    });
+    return false;
+  }
+}
+
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === 'search-selection' && tab && tab.id) {
-    await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['src/content.js'] });
-    chrome.tabs.sendMessage(tab.id, { action: 'search-selection', text: info.selectionText });
+    const isLoaded = await ensureContentScriptLoaded(tab.id);
+    if (!isLoaded) {
+      // Wait a moment for the content script to initialize
+      setTimeout(() => {
+        chrome.tabs.sendMessage(tab.id, { action: 'search-selection', text: info.selectionText });
+      }, 100);
+    } else {
+      chrome.tabs.sendMessage(tab.id, { action: 'search-selection', text: info.selectionText });
+    }
   }
 });
 
 // Action (toolbar) click fallback
 chrome.action.onClicked.addListener(async (tab) => {
   if (tab && tab.id) {
-    await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['src/content.js'] });
-    chrome.tabs.sendMessage(tab.id, { action: 'open-enhanced-search' });
+    const isLoaded = await ensureContentScriptLoaded(tab.id);
+    if (!isLoaded) {
+      // Wait a moment for the content script to initialize
+      setTimeout(() => {
+        chrome.tabs.sendMessage(tab.id, { action: 'open-enhanced-search' });
+      }, 100);
+    } else {
+      chrome.tabs.sendMessage(tab.id, { action: 'open-enhanced-search' });
+    }
   }
 });
 
