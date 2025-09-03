@@ -1,0 +1,14 @@
+{
+  "name": "enhanced-search",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "test": "npx playwright test",
+    "playwright:install": "npx playwright install",
+    "build": "npx esbuild src/content.js --bundle --outfile=dist/content.js --minify",
+    "package": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package-release.ps1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0"
+  }
+}

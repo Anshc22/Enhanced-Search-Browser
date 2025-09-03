@@ -1,0 +1,1 @@
+New memory: User prefers to use Git Bash for terminal operations and memory management tasks
