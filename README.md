@@ -1,3 +1,8 @@
+Find this plugin at 
+
+https://chromewebstore.google.com/detail/enhanced-search/nfclmaieaddedjognjmckbmfdnobmbmo?authuser=0&hl=en-GB
+
+
 Project reorganization note
 
 This workspace contains the Chrome extension "Enhanced Search".
