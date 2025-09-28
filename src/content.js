@@ -265,7 +265,7 @@
       if (compact) {
         // restore saved compact state
         try { chrome.storage.local.get(['compactMode'], (s) => { if (s && s.compactMode) compact.checked = !!s.compactMode; overlayApplyCompact(!!(s && s.compactMode)); }); } catch (e) {}
-        compact.addEventListener('change', () => { const v = !!compact.checked; try { chrome.storage.local.set({ compactMode: v }); } catch (e) {} overlayApplyCompact(v); });
+        compact.addEventListener('change', () => { const v = !!compact.checked; try { chrome.storage.local.set({ compactMode: v }); saveOptionsToStorage(); } catch (e) {} overlayApplyCompact(v); });
       }
       // close button wiring
       try {
