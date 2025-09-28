@@ -263,9 +263,8 @@
       });
       const compact = overlay.querySelector('#es-compact');
       if (compact) {
-        // restore saved compact state
-        try { chrome.storage.local.get(['compactMode'], (s) => { if (s && s.compactMode) compact.checked = !!s.compactMode; overlayApplyCompact(!!(s && s.compactMode)); }); } catch (e) {}
-        compact.addEventListener('change', () => { const v = !!compact.checked; try { chrome.storage.local.set({ compactMode: v }); } catch (e) {} overlayApplyCompact(v); });
+        // initialization is now handled by loadOptionsIntoOverlay() and showOverlay()
+        // Note: event listener is now handled above in the dedicated section
       }
       // close button wiring
       try {
@@ -289,7 +288,7 @@
       // map new friendly excludes to storage fields used in scanning
       const skipCode = overlay.querySelector('#es-skip-code');
       if (skipCode) {
-        // initialize skipCode from storage (default: true)
+        // initialization is now handled by loadOptionsIntoOverlay() - just set default if no saved state
         try {
           chrome.storage.local.get(['excludeSelectors'], (s) => {
             try {
@@ -298,19 +297,14 @@
                 // default to on
                 skipCode.checked = true;
                 chrome.storage.local.set({ excludeSelectors: 'pre,code,style' });
-              } else {
-                skipCode.checked = !!(ex && ex.indexOf('pre') >= 0);
               }
             } catch (e) {}
           });
         } catch (e) {}
-        skipCode.addEventListener('change', () => { try { chrome.storage.local.set({ excludeSelectors: skipCode.checked ? 'pre,code,style' : '' }); performSearch(document.getElementById('es-input').value); } catch(e){} });
+        // Note: event listener and full initialization is now handled by loadOptionsIntoOverlay() and dedicated event listeners
       }
       // 'Ignore headers' control removed (duplicates 'Headings' checkbox)
-      // search mode toggle (Whole words / Partial matches)
-      const modeBtn = overlay.querySelector('#es-mode-toggle');
-      try { chrome.storage.local.get(['wholeMode'], (s)=> { const wholeMode = s && typeof s.wholeMode !== 'undefined' ? !!s.wholeMode : true; if (modeBtn) { modeBtn.classList.toggle('active', wholeMode); modeBtn.title = wholeMode ? 'Whole words mode' : 'Partial matches mode'; } }); } catch(e) {}
-      if (modeBtn) modeBtn.addEventListener('click', () => { try { chrome.storage.local.get(['wholeMode'], (s)=> { const current = s && typeof s.wholeMode !== 'undefined' ? !!s.wholeMode : true; const next = !current; chrome.storage.local.set({ wholeMode: next }); modeBtn.classList.toggle('active', next); modeBtn.title = next ? 'Whole words mode' : 'Partial matches mode'; saveOptionsToStorage(); performSearch(document.getElementById('es-input').value); }); } catch(e){} });
+      // search mode toggle (Whole words / Partial matches) - initialization and event listener now handled above
     } catch (e) {}
 
     // persist toggles live and re-run search
@@ -328,6 +322,42 @@
       // make larger hit area for accessibility
       if (el && el.parentElement) el.parentElement.style.padding = '6px 8px';
     });
+
+    // handle mode toggle separately since it controls wholeMode
+    const modeBtn = overlay.querySelector('#es-mode-toggle');
+    if (modeBtn) modeBtn.addEventListener('click', () => {
+      try {
+        const next = !modeBtn.classList.contains('active');
+        modeBtn.classList.toggle('active', next);
+        modeBtn.title = next ? 'Whole words mode' : 'Partial matches mode';
+        saveOptionsToStorage();
+        performSearch(document.getElementById('es-input').value);
+      } catch(e) {}
+    });
+
+    // handle skip code blocks toggle
+    const skipCode = overlay.querySelector('#es-skip-code');
+    if (skipCode) {
+      skipCode.addEventListener('change', () => {
+        try {
+          const enabled = skipCode.checked;
+          chrome.storage.local.set({ excludeSelectors: enabled ? 'pre,code,style' : '' });
+          saveOptionsToStorage();
+          performSearch(document.getElementById('es-input').value);
+        } catch(e) {}
+      });
+    }
+
+    // handle compact mode toggle
+    const compact = overlay.querySelector('#es-compact');
+    if (compact) {
+      compact.addEventListener('change', () => {
+        const v = !!compact.checked;
+        try { chrome.storage.local.set({ compactMode: v }); } catch (e) {}
+        saveOptionsToStorage();
+        overlayApplyCompact(v);
+      });
+    }
     // load exclude selectors and json option
     const exInput = overlay.querySelector('#es-exclude-selectors');
     const exJsonInput = overlay.querySelector('#es-exclude-json');
@@ -1052,10 +1082,12 @@
   // Options persistence
   function saveOptionsToStorage() {
     try {
+      const modeBtn = document.getElementById('es-mode-toggle');
       const out = {
         case: !!document.getElementById('es-case').checked,
         // whole-mode is now derived from the mode button state
-        whole: !!(document.getElementById('es-mode-toggle') && document.getElementById('es-mode-toggle').classList.contains('active')),
+        whole: !!(modeBtn && modeBtn.classList.contains('active')),
+        wholeMode: !!(modeBtn && modeBtn.classList.contains('active')), // keep both for compatibility
         regex: !!document.getElementById('es-regex').checked,
         html: !!document.getElementById('es-html-filter').checked,
         excludeSelectors: (document.getElementById('es-exclude-selectors') || {}).value || '',
@@ -1071,7 +1103,7 @@
 
   function loadOptionsIntoOverlay() {
     try {
-      chrome.storage.local.get(['case','whole','regex','html','filterHeadings','filterLinks','filterParagraphs'], (s) => {
+      chrome.storage.local.get(['case','whole','wholeMode','regex','html','filterHeadings','filterLinks','filterParagraphs','excludeSelectors'], (s) => {
         const o = s || {};
         // main bar checkboxes removed; load into advanced mirrors instead
         const map = { 'es-adv-case':'case', 'es-adv-regex':'regex', 'es-adv-html':'html' };
@@ -1083,6 +1115,21 @@
         const fh = document.getElementById('es-filter-headings'); if (fh) fh.checked = !!o.filterHeadings;
         const fl = document.getElementById('es-filter-links'); if (fl) fl.checked = !!o.filterLinks;
         const fp = document.getElementById('es-filter-paragraphs'); if (fp) fp.checked = !!o.filterParagraphs;
+
+        // load mode toggle state
+        const modeBtn = document.getElementById('es-mode-toggle');
+        const wholeMode = o.wholeMode !== undefined ? o.wholeMode : (o.whole !== undefined ? o.whole : true);
+        if (modeBtn) {
+          modeBtn.classList.toggle('active', wholeMode);
+          modeBtn.title = wholeMode ? 'Whole words mode' : 'Partial matches mode';
+        }
+
+        // load skip code blocks setting
+        const skipCode = document.getElementById('es-skip-code');
+        if (skipCode) {
+          const excludeSelectors = o.excludeSelectors || '';
+          skipCode.checked = !!(excludeSelectors && excludeSelectors.indexOf('pre') >= 0);
+        }
       });
     } catch (e) {}
   }
