@@ -265,7 +265,7 @@
       if (compact) {
         // restore saved compact state
         try { chrome.storage.local.get(['compactMode'], (s) => { if (s && s.compactMode) compact.checked = !!s.compactMode; overlayApplyCompact(!!(s && s.compactMode)); }); } catch (e) {}
-        compact.addEventListener('change', () => { const v = !!compact.checked; try { chrome.storage.local.set({ compactMode: v }); } catch (e) {} overlayApplyCompact(v); });
+        compact.addEventListener('change', () => { const v = !!compact.checked; try { chrome.storage.local.set({ compactMode: v }); saveOptionsToStorage(); } catch (e) {} overlayApplyCompact(v); });
       }
       // close button wiring
       try {
@@ -304,7 +304,7 @@
             } catch (e) {}
           });
         } catch (e) {}
-        skipCode.addEventListener('change', () => { try { chrome.storage.local.set({ excludeSelectors: skipCode.checked ? 'pre,code,style' : '' }); performSearch(document.getElementById('es-input').value); } catch(e){} });
+        skipCode.addEventListener('change', () => { try { chrome.storage.local.set({ excludeSelectors: skipCode.checked ? 'pre,code,style' : '' }); saveOptionsToStorage(); performSearch(document.getElementById('es-input').value); } catch(e){} });
       }
       // 'Ignore headers' control removed (duplicates 'Headings' checkbox)
       // search mode toggle (Whole words / Partial matches)
@@ -332,8 +332,8 @@
     const exInput = overlay.querySelector('#es-exclude-selectors');
     const exJsonInput = overlay.querySelector('#es-exclude-json');
     try { chrome.storage.local.get(['excludeSelectors','excludeJson'], (s) => { if (exInput) exInput.value = s.excludeSelectors || ''; if (exJsonInput) exJsonInput.checked = !!s.excludeJson; }); } catch (e) {}
-    if (exInput) exInput.addEventListener('change', () => { chrome.storage.local.set({ excludeSelectors: exInput.value }); performSearch(document.getElementById('es-input').value); });
-    if (exJsonInput) exJsonInput.addEventListener('change', () => { chrome.storage.local.set({ excludeJson: exJsonInput.checked }); performSearch(document.getElementById('es-input').value); });
+    if (exInput) exInput.addEventListener('change', () => { chrome.storage.local.set({ excludeSelectors: exInput.value }); saveOptionsToStorage(); performSearch(document.getElementById('es-input').value); });
+    if (exJsonInput) exJsonInput.addEventListener('change', () => { chrome.storage.local.set({ excludeJson: exJsonInput.checked }); saveOptionsToStorage(); performSearch(document.getElementById('es-input').value); });
     // settings toggle to show/hide exclusions
     const settingsToggle = overlay.querySelector('#es-settings-toggle');
     const settingsPanel = overlay.querySelector('#es-settings');
@@ -1071,7 +1071,7 @@
 
   function loadOptionsIntoOverlay() {
     try {
-      chrome.storage.local.get(['case','whole','regex','html','filterHeadings','filterLinks','filterParagraphs'], (s) => {
+      chrome.storage.local.get(['case','whole','regex','html','excludeSelectors','excludeJson','filterHeadings','filterLinks','filterParagraphs'], (s) => {
         const o = s || {};
         // main bar checkboxes removed; load into advanced mirrors instead
         const map = { 'es-adv-case':'case', 'es-adv-regex':'regex', 'es-adv-html':'html' };
@@ -1079,10 +1079,17 @@
           const el = document.getElementById(k);
           if (el) el.checked = !!o[map[k]];
         });
+        // exclude selectors and json
+        const exInput = document.getElementById('es-exclude-selectors'); if (exInput) exInput.value = o.excludeSelectors || '';
+        const exJsonInput = document.getElementById('es-exclude-json'); if (exJsonInput) exJsonInput.checked = !!o.excludeJson;
+
         // element filters
         const fh = document.getElementById('es-filter-headings'); if (fh) fh.checked = !!o.filterHeadings;
         const fl = document.getElementById('es-filter-links'); if (fl) fl.checked = !!o.filterLinks;
         const fp = document.getElementById('es-filter-paragraphs'); if (fp) fp.checked = !!o.filterParagraphs;
+
+        // save settings after loading to ensure they're persisted
+        saveOptionsToStorage();
       });
     } catch (e) {}
   }
